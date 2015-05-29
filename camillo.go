@@ -52,13 +52,20 @@ func Wrap(handler http.Handler) Handler {
 // Camillo middleware is evaluated in the order that they are added to the stack using
 // the Use and UseHandler methods.
 type Camillo struct {
+	ctx        context.Context
 	middleware middleware
 	handlers   []Handler
 }
 
 // New returns a new Camillo instance with no middleware preconfigured.
 func New(handlers ...Handler) *Camillo {
+	return NewWithContext(context.Background(), handlers...)
+}
+
+// NewWithContext returns a new Camillo instance with no middleware preconfigured.
+func NewWithContext(ctx context.Context, handlers ...Handler) *Camillo {
 	return &Camillo{
+		ctx:        ctx,
 		handlers:   handlers,
 		middleware: build(handlers),
 	}
@@ -83,7 +90,10 @@ func (n *Camillo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctx = context.Background()
+	ctx = n.ctx
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
