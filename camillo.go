@@ -43,11 +43,10 @@ func (m middleware) ServeHTTP(ctx context.Context, rw http.ResponseWriter, r *ht
 // is executed.
 func Wrap(handler http.Handler) Handler {
 	return HandlerFunc(func(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
-		sharedContextStore.Add(r, ctx)
+		sharedContextStore.Push(r, ctx)
+		defer sharedContextStore.Pop(r, ctx)
 
 		handler.ServeHTTP(rw, r)
-
-		ctx = sharedContextStore.Get(r)
 		next(ctx, rw, r)
 	})
 }
@@ -101,8 +100,8 @@ func (n *Camillo) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	sharedContextStore.Add(r, ctx)
-	defer sharedContextStore.Remove(r)
+	sharedContextStore.Push(r, ctx)
+	defer sharedContextStore.Pop(r, ctx)
 
 	n.middleware.ServeHTTP(ctx, NewResponseWriter(rw), r)
 }
