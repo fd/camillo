@@ -43,7 +43,11 @@ func (m middleware) ServeHTTP(ctx context.Context, rw http.ResponseWriter, r *ht
 // is executed.
 func Wrap(handler http.Handler) Handler {
 	return HandlerFunc(func(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
+		sharedContextStore.Add(r, ctx)
+
 		handler.ServeHTTP(rw, r)
+
+		ctx = sharedContextStore.Get(r)
 		next(ctx, rw, r)
 	})
 }
