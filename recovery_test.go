@@ -1,4 +1,4 @@
-package negroni
+package camillo
 
 import (
 	"bytes"
@@ -13,7 +13,7 @@ func TestRecovery(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	rec := NewRecovery()
-	rec.Logger = log.New(buff, "[negroni] ", 0)
+	rec.Logger = log.New(buff, "[camillo] ", 0)
 
 	n := New()
 	// replace log for testing

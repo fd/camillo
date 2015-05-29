@@ -1,10 +1,12 @@
-package negroni
+package camillo
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
 	"testing"
+
+	"golang.org/x/net/context"
 )
 
 /* Test Helpers */
@@ -20,27 +22,27 @@ func refute(t *testing.T, a interface{}, b interface{}) {
 	}
 }
 
-func TestNegroniRun(t *testing.T) {
+func TestCamilloRun(t *testing.T) {
 	// just test that Run doesn't bomb
 	go New().Run(":3000")
 }
 
-func TestNegroniServeHTTP(t *testing.T) {
+func TestCamilloServeHTTP(t *testing.T) {
 	result := ""
 	response := httptest.NewRecorder()
 
 	n := New()
-	n.Use(HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	n.Use(HandlerFunc(func(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
 		result += "foo"
-		next(rw, r)
+		next(ctx, rw, r)
 		result += "ban"
 	}))
-	n.Use(HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	n.Use(HandlerFunc(func(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
 		result += "bar"
-		next(rw, r)
+		next(ctx, rw, r)
 		result += "baz"
 	}))
-	n.Use(HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	n.Use(HandlerFunc(func(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
 		result += "bat"
 		rw.WriteHeader(http.StatusBadRequest)
 	}))
@@ -51,7 +53,7 @@ func TestNegroniServeHTTP(t *testing.T) {
 	expect(t, response.Code, http.StatusBadRequest)
 }
 
-// Ensures that a Negroni middleware chain 
+// Ensures that a Camillo middleware chain
 // can correctly return all of its handlers.
 func TestHandlers(t *testing.T) {
 	response := httptest.NewRecorder()
@@ -59,17 +61,17 @@ func TestHandlers(t *testing.T) {
 	handlers := n.Handlers()
 	expect(t, 0, len(handlers))
 
-	n.Use(HandlerFunc(func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	n.Use(HandlerFunc(func(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
 		rw.WriteHeader(http.StatusOK)
 	}))
 
-	// Expects the length of handlers to be exactly 1 
+	// Expects the length of handlers to be exactly 1
 	// after adding exactly one handler to the middleware chain
 	handlers = n.Handlers()
 	expect(t, 1, len(handlers))
 
 	// Ensures that the first handler that is in sequence behaves
 	// exactly the same as the one that was registered earlier
-	handlers[0].ServeHTTP(response, (*http.Request)(nil), nil)
+	handlers[0].ServeHTTP(nil, response, (*http.Request)(nil), nil)
 	expect(t, response.Code, http.StatusOK)
 }

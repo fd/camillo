@@ -1,9 +1,11 @@
-package negroni
+package camillo
 
 import (
 	"net/http"
 	"path"
 	"strings"
+
+	"golang.org/x/net/context"
 )
 
 // Static is a middleware handler that serves static files in the given directory/filesystem.
@@ -25,35 +27,35 @@ func NewStatic(directory http.FileSystem) *Static {
 	}
 }
 
-func (s *Static) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+func (s *Static) ServeHTTP(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
 	if r.Method != "GET" && r.Method != "HEAD" {
-		next(rw, r)
+		next(ctx, rw, r)
 		return
 	}
 	file := r.URL.Path
 	// if we have a prefix, filter requests by stripping the prefix
 	if s.Prefix != "" {
 		if !strings.HasPrefix(file, s.Prefix) {
-			next(rw, r)
+			next(ctx, rw, r)
 			return
 		}
 		file = file[len(s.Prefix):]
 		if file != "" && file[0] != '/' {
-			next(rw, r)
+			next(ctx, rw, r)
 			return
 		}
 	}
 	f, err := s.Dir.Open(file)
 	if err != nil {
 		// discard the error?
-		next(rw, r)
+		next(ctx, rw, r)
 		return
 	}
 	defer f.Close()
 
 	fi, err := f.Stat()
 	if err != nil {
-		next(rw, r)
+		next(ctx, rw, r)
 		return
 	}
 
@@ -68,14 +70,14 @@ func (s *Static) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.Ha
 		file = path.Join(file, s.IndexFile)
 		f, err = s.Dir.Open(file)
 		if err != nil {
-			next(rw, r)
+			next(ctx, rw, r)
 			return
 		}
 		defer f.Close()
 
 		fi, err = f.Stat()
 		if err != nil || fi.IsDir() {
-			next(rw, r)
+			next(ctx, rw, r)
 			return
 		}
 	}

@@ -1,4 +1,4 @@
-package negroni
+package camillo
 
 import (
 	"bytes"
@@ -14,7 +14,7 @@ func TestStatic(t *testing.T) {
 	n := New()
 	n.Use(NewStatic(http.Dir(".")))
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/negroni.go", nil)
+	req, err := http.NewRequest("GET", "http://localhost:3000/camillo.go", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -34,7 +34,7 @@ func TestStaticHead(t *testing.T) {
 	n.Use(NewStatic(http.Dir(".")))
 	n.UseHandler(http.NotFoundHandler())
 
-	req, err := http.NewRequest("HEAD", "http://localhost:3000/negroni.go", nil)
+	req, err := http.NewRequest("HEAD", "http://localhost:3000/camillo.go", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -53,7 +53,7 @@ func TestStaticAsPost(t *testing.T) {
 	n.Use(NewStatic(http.Dir(".")))
 	n.UseHandler(http.NotFoundHandler())
 
-	req, err := http.NewRequest("POST", "http://localhost:3000/negroni.go", nil)
+	req, err := http.NewRequest("POST", "http://localhost:3000/camillo.go", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -68,7 +68,7 @@ func TestStaticBadDir(t *testing.T) {
 	n := Classic()
 	n.UseHandler(http.NotFoundHandler())
 
-	req, err := http.NewRequest("GET", "http://localhost:3000/negroni.go", nil)
+	req, err := http.NewRequest("GET", "http://localhost:3000/camillo.go", nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -82,7 +82,7 @@ func TestStaticOptionsServeIndex(t *testing.T) {
 
 	n := New()
 	s := NewStatic(http.Dir("."))
-	s.IndexFile = "negroni.go"
+	s.IndexFile = "camillo.go"
 	n.Use(s)
 
 	req, err := http.NewRequest("GET", "http://localhost:3000/", nil)
@@ -103,7 +103,7 @@ func TestStaticOptionsPrefix(t *testing.T) {
 	n.Use(s)
 
 	// Check file content behaviour
-	req, err := http.NewRequest("GET", "http://localhost:3000/public/negroni.go", nil)
+	req, err := http.NewRequest("GET", "http://localhost:3000/public/camillo.go", nil)
 	if err != nil {
 		t.Error(err)
 	}

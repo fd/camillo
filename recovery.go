@@ -1,4 +1,4 @@
-package negroni
+package camillo
 
 import (
 	"fmt"
@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+
+	"golang.org/x/net/context"
 )
 
-// Recovery is a Negroni middleware that recovers from any panics and writes a 500 if there was one.
+// Recovery is a Camillo middleware that recovers from any panics and writes a 500 if there was one.
 type Recovery struct {
 	Logger     *log.Logger
 	PrintStack bool
@@ -19,14 +21,14 @@ type Recovery struct {
 // NewRecovery returns a new instance of Recovery
 func NewRecovery() *Recovery {
 	return &Recovery{
-		Logger:     log.New(os.Stdout, "[negroni] ", 0),
+		Logger:     log.New(os.Stdout, "[camillo] ", 0),
 		PrintStack: true,
 		StackAll:   false,
 		StackSize:  1024 * 8,
 	}
 }
 
-func (rec *Recovery) ServeHTTP(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+func (rec *Recovery) ServeHTTP(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
 	defer func() {
 		if err := recover(); err != nil {
 			rw.WriteHeader(http.StatusInternalServerError)
@@ -42,5 +44,5 @@ func (rec *Recovery) ServeHTTP(rw http.ResponseWriter, r *http.Request, next htt
 		}
 	}()
 
-	next(rw, r)
+	next(ctx, rw, r)
 }
