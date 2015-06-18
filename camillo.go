@@ -25,6 +25,14 @@ type HandlerFunc func(ctx context.Context, rw http.ResponseWriter, r *http.Reque
 // NextFunc passes the request to the next middleware layer
 type NextFunc func(ctx context.Context, rw http.ResponseWriter, r *http.Request)
 
+func (h NextFunc) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+	h(context.Background(), rw, r)
+}
+
+func (h NextFunc) ServeHTTPContext(ctx context.Context, rw http.ResponseWriter, r *http.Request) {
+	h(ctx, rw, r)
+}
+
 func (h HandlerFunc) ServeHTTP(ctx context.Context, rw http.ResponseWriter, r *http.Request, next NextFunc) {
 	h(ctx, rw, r, next)
 }
